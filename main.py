@@ -7,6 +7,7 @@ NUM_STARS = 1500
 CENTER = vec2(WIDTH // 2, HEIGHT // 2)
 COLORS = 'red green blue orange purple cyan'.split()
 Z_DISTANCE = 40 # distance from which stars begin to move
+ALPHA = 120 # transparency value
 
 class Star:
     def __init__(self, app):
@@ -47,13 +48,15 @@ class Starfield:
 class App:
     def __init__(self):
         self.screen = pg.display.set_mode(RES)
+        self.alpha_surface = pg.Surface(RES)
+        self.alpha_surface.set_alpha(ALPHA)
         pg.display.set_caption('Wormhole')
         self.clock = pg.time.Clock()
         self.starfield = Starfield(self)
     
     def run(self):
         while True:
-            self.screen.fill('black')
+            self.screen.blit(self.alpha_surface, (0,0))
             self.starfield.run()
 
             pg.display.flip()

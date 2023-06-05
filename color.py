@@ -1,5 +1,6 @@
-# converts b-v color index to rgb
-def bv2rgb(bv):
+from random import uniform, choice, randrange
+
+def bv2rgb(bv): # converts b-v color index (real stars) to rgb
     if bv < -0.40: bv = -0.40
     if bv > 2.00: bv = 2.00
 
@@ -42,3 +43,12 @@ def bv2rgb(bv):
         b=0.63-(0.6*t*t)
 
     return (round(r*255), round(g*255), round(b*255))
+
+def temperature(): # random color temp based on b-v interval
+    return bv2rgb(uniform(-0.4, 2.0))
+
+def rainbow(): # random color from rainbow
+    return choice('red orange yellow green blue purple violet'.split())
+
+def pastels(): # random pastel color
+    return tuple((randrange(256)+255)//2 for _ in range(3))

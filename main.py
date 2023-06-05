@@ -11,14 +11,12 @@ VELOCITY = lambda s: 0.486665 * math.log(1.62499*s + 0.121003) + 1.02781
 
 z_distance = 40 # distance from which stars begin to move
 alpha = 120 # transparency value
-size_scale = 0.2
-radius_scale = 35
+size_scale = 0.2 # scaling for size
+radius_scale = 35 # scaling for radius
+radius_x = radius_y = 0 # movement of radius
 spd = 0.05 # velocity value
 ang_spd = 0.2 # angular velocity value
-color_choice = 0
-shape = 0
-#Z_DISTANCE = 140 # distance from which stars begin to move
-#ALPHA = 30 # transparency value
+color_choice = shape = 0
 
 class Star:
     def __init__(self, app):
@@ -43,6 +41,7 @@ class Star:
         self.pos3d = self.reset() if self.pos3d.z < 1 else self.pos3d # reset if off screen
 
         self.screen_pos = vec2(self.pos3d.x, self.pos3d.y) / self.pos3d.z + CENTER
+        self.screen_pos += vec2(radius_x, radius_y)
         self.size = (z_distance - self.pos3d.z) / (size_scale * self.pos3d.z) # change size based on z-axis position
         self.pos3d.xy = self.pos3d.xy.rotate(ang_spd) # rotate xy
         #mouse_pos = CENTER - vec2(pg.mouse.get_pos()) # move screen based on mouse position
@@ -69,9 +68,6 @@ class Starfield:
     def change_spd(self):
         [star.set_spd() for star in self.stars]
 
-    def reset(self):
-        [star.reset() for star in self.stars]
-
 class App:
     def __init__(self):
         self.screen = pg.display.set_mode(RES)
@@ -83,7 +79,7 @@ class App:
     
     def run(self):
         while True:
-            global alpha, z_distance, spd, ang_spd, size_scale, radius_scale, color_choice, shape
+            global alpha, z_distance, spd, ang_spd, size_scale, radius_scale, color_choice, shape, radius_x, radius_y
             self.screen.blit(self.alpha_surface, (0,0))
             self.starfield.run()
 
@@ -95,8 +91,29 @@ class App:
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_b: # b -> change color
                         color_choice = (color_choice + 1) if (color_choice < 3) else 0
-                    if event.key == pg.K_h: # h -> change shape
+                    if event.key == pg.K_n: # n -> change shape
                         shape = (shape + 1) if (shape < 1) else 0
+                    if event.key == pg.K_SPACE: # space -> starfield setting
+                        z_distance = 40
+                        alpha = 120
+                        size_scale = shape = 1
+                        radius_scale = 35
+                        spd = 0.05
+                        ang_spd = 0.2
+                        radius_x = radius_y = color_choice = 0
+                        self.starfield = Starfield(self)
+                        self.alpha_surface.set_alpha(alpha)
+                    if event.key == pg.K_RETURN: # return -> wormhole setting
+                        z_distance = 140
+                        alpha = 30
+                        size_scale = 0.2
+                        radius_scale = 4
+                        spd = 0.45
+                        ang_spd = color_choice = 0
+                        shape = 1
+                        radius_x = radius_y = 0
+                        self.starfield = Starfield(self)
+                        self.alpha_surface.set_alpha(alpha)
             pressed = pg.key.get_pressed() # keyboard input
             if pressed[pg.K_f]: # f -> more transparent
                 alpha = (alpha - 1) if (alpha > 0) else 0
@@ -126,28 +143,15 @@ class App:
                 radius_scale = (radius_scale - 1) if (radius_scale > 2) else 2
             if pressed[pg.K_t]: # t -> radius gets larger
                 radius_scale = (radius_scale + 1) if (radius_scale < HEIGHT-1) else HEIGHT-1
-            if pressed[pg.K_SPACE]: # space -> reset to default (starfield)
-                z_distance = 40
-                alpha = 120
-                self.alpha_surface.set_alpha(alpha)
-                size_scale = 1
-                radius_scale = 35
-                spd = 0.05
-                ang_spd = 0.2
-                color_choice = 0
-                shape = 1
-            if pressed[pg.K_RETURN]: # return -> wormhole setting
-                z_distance = 140
-                alpha = 30
-                self.alpha_surface.set_alpha(alpha)
-                size_scale = 0.2
-                radius_scale = 4
-                spd = 0.45
-                ang_spd = 0.0
-                color_choice = 0
-                shape = 1
-                self.starfield.reset()
-            
+            if pressed[pg.K_e]: # e -> radius moves right
+                radius_x = (radius_x + 1) if (radius_x < WIDTH//2) else WIDTH//2
+            if pressed[pg.K_q]: # q -> radius moves left
+                radius_x = (radius_x - 1) if (radius_x > -WIDTH//2) else -WIDTH//2
+            if pressed[pg.K_y]: # y -> radius moves right
+                radius_y = (radius_y - 1) if (radius_y > -HEIGHT//2) else -HEIGHT//2
+            if pressed[pg.K_h]: # h -> radius moves left
+                radius_y = (radius_y + 1) if (radius_y < HEIGHT//2) else HEIGHT//2
+
             self.clock.tick(60) # 60 fps
 
 if __name__ == '__main__':

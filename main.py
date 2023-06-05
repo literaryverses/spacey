@@ -3,7 +3,7 @@ import pygame as pg, sys, random, math
 vec2, vec3 = pg.math.Vector2, pg.math.Vector3
 
 RES = WIDTH, HEIGHT = 1000, 800
-NUM_STARS = 100
+NUM_STARS = 1500
 CENTER = vec2(WIDTH // 2, HEIGHT // 2)
 COLORS = 'red green blue orange purple cyan'.split()
 Z_DISTANCE = 40 # distance from which stars begin to move
@@ -17,9 +17,9 @@ class Star:
         self.size = 10 # size
         self.screen_pos = vec2(0, 0) # position relative to screen
 
-    def get_pos3d(self):
+    def get_pos3d(self, scale_pos = 35) -> vec3:
         angle = random.uniform(0, 2*math.pi)
-        radius = random.randrange(HEIGHT)
+        radius = random.randrange(HEIGHT // scale_pos, HEIGHT) * scale_pos
         x = radius * math.sin(angle)
         y = radius * math.cos(angle)
         return vec3(x, y, Z_DISTANCE)
@@ -29,7 +29,8 @@ class Star:
         self.pos3d = self.get_pos3d() if self.pos3d.z < 1 else self.pos3d # reset if off screen
 
         self.screen_pos = vec2(self.pos3d.x, self.pos3d.y) / self.pos3d.z + CENTER
-        self.size = Z_DISTANCE / self.pos3d.z # change size based on z-axis position
+        #self.size = Z_DISTANCE / self.pos3d.z # change size based on z-axis position
+        self.size = (Z_DISTANCE - self.pos3d.z) / (0.2 * self.pos3d.z)
 
     def draw(self):
         pg.draw.rect(self.screen, self.color, (*self.screen_pos, self.size, self.size))
@@ -40,7 +41,7 @@ class Starfield:
  
     def run(self):
         [star.update() for star in self.stars]
-        self.stars.sort(keys=lambda star: star.pos3d.z, reverse = True) # painter's algo
+        self.stars.sort(key=lambda star: star.pos3d.z, reverse = True) # painter's algo
         [star.draw() for star in self.stars]
 
 class App:

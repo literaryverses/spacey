@@ -1,4 +1,5 @@
 import pygame as pg, sys, random, math
+from color import bv2rgb
 
 vec2, vec3 = pg.math.Vector2, pg.math.Vector3
 
@@ -6,6 +7,7 @@ RES = WIDTH, HEIGHT = 1000, 800
 NUM_STARS = 1500
 CENTER = vec2(WIDTH // 2, HEIGHT // 2)
 COLORS = 'red green blue orange purple cyan'.split()
+
 Z_DISTANCE = 40 # distance from which stars begin to move
 ALPHA = 120 # transparency value
 
@@ -14,7 +16,8 @@ class Star:
         self.screen = app.screen
         self.pos3d = self.get_pos3d()
         self.vel = random.uniform(0.05, 0.25) # speed
-        self.color = random.choice(COLORS) # color
+       #self.color = random.choice(COLORS) # color
+        self.color = bv2rgb(random.uniform(-0.4,2))
         self.size = 10 # size
         self.screen_pos = vec2(0, 0) # position relative to screen
 
@@ -32,14 +35,17 @@ class Star:
         self.screen_pos = vec2(self.pos3d.x, self.pos3d.y) / self.pos3d.z + CENTER
         self.size = (Z_DISTANCE - self.pos3d.z) / (0.2 * self.pos3d.z) # change size based on z-axis position
         self.pos3d.xy = self.pos3d.xy.rotate(0.2) # rotate xy
+        mouse_pos = CENTER - vec2(pg.mouse.get_pos())
+        self.screen_pos += mouse_pos
 
     def draw(self):
-        pg.draw.rect(self.screen, self.color, (*self.screen_pos, self.size, self.size))
+        #pg.draw.rect(self.screen, self.color, (*self.screen_pos, self.size, self.size))
+        pg.draw.circle(self.screen, self.color, self.screen_pos, self.size)
 
 class Starfield:
     def __init__(self, app):
         self.stars = [Star(app) for i in range(NUM_STARS)]
- 
+
     def run(self):
         [star.update() for star in self.stars]
         self.stars.sort(key=lambda star: star.pos3d.z, reverse = True) # painter's algo

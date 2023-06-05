@@ -4,14 +4,18 @@ vec2, vec3 = pg.math.Vector2, pg.math.Vector3
 
 RES = WIDTH, HEIGHT = 1000, 800
 NUM_STARS = 100
-CENTER = math.vec2(WIDTH // 2, HEIGHT // 2)
+CENTER = vec2(WIDTH // 2, HEIGHT // 2)
 COLORS = 'red green blue orange purple cyan'.split()
 Z_DISTANCE = 40 # distance from which stars begin to move
 
 class Star:
     def __init__(self, app):
         self.screen = app.screen
-        self.pos3d = None
+        self.pos3d = self.get_pos3d()
+        self.vel = random.uniform(0.05, 0.25) # speed
+        self.color = random.choice(COLORS) # color
+        self.size = 10 # size
+        self.screen_pos = vec2(0, 0) # position relative to screen
 
     def get_pos3d(self):
         angle = random.uniform(0, 2*math.pi)
@@ -21,14 +25,17 @@ class Star:
         return vec3(x, y, Z_DISTANCE)
 
     def update(self):
-        pass
+        self.pos3d.z -= self.vel # move along z-axis
+        self.pos3d = self.get_pos3d() if self.pos3d.z < 1 else self.pos3d # reset if off screen
+
+        self.screen_pos = vec2(self.pos3d.x, self.pos3d.y) / self.pos3d.z + CENTER
 
     def draw(self):
-        pass
+        pg.draw.rect(self.screen, self.color, (*self.screen_pos, self.size, self.size))
 
 class Starfield:
     def __init__(self, app):
-        self.stars = [Star(app for i in range(NUM_STARS))]
+        self.stars = [Star(app) for i in range(NUM_STARS)]
  
     def run(self):
         [star.update() for star in self.stars]

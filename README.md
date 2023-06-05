@@ -1,4 +1,4 @@
-# wormhole.io
+# Spacey
 
 ## Goal
 This is a fun simulation of moving through wormholes and starfields.

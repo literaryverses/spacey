@@ -5,14 +5,18 @@ vec2, vec3 = pg.math.Vector2, pg.math.Vector3
 RES = WIDTH, HEIGHT = 1000, 800
 NUM_STARS = 1500
 CENTER = vec2(WIDTH // 2, HEIGHT // 2)
-COLORS = [c.temperature, c.rainbow, c.pastels]
+COLORS = [c.temperature, c.rainbow, c.pastels, c.monochrome]
+VELOCITY = lambda s: 0.486665 * math.log(1.62499*s + 0.121003) + 1.02781
+
 
 z_distance = 40 # distance from which stars begin to move
 alpha = 120 # transparency value
-scaling = 1
-velocity = 0 # velocity value
-ang_velocity = 0.2 # angular velocity value
+size_scale = 0.2
+radius_scale = 35
+spd = 0.05 # velocity value
+ang_spd = 0.2 # angular velocity value
 color_choice = 0
+shape = 0
 #Z_DISTANCE = 140 # distance from which stars begin to move
 #ALPHA = 30 # transparency value
 
@@ -20,19 +24,18 @@ class Star:
     def __init__(self, app):
         self.screen = app.screen
         self.pos3d = self.reset()
-        self.vel = r.uniform(0.05, 0.25) # speed
-        #self.vel = random.uniform(0.45, 0.95) # speed
+        self.vel = r.uniform(spd, VELOCITY(spd))
         self.color = COLORS[color_choice]() # color
         self.size = 1 # size
         self.screen_pos = vec2(0, 0) # position relative to screen
 
     def reset(self, scale_pos = 35) -> vec3:
         angle = r.uniform(0, 2*math.pi)
-        radius = r.randrange(HEIGHT // scale_pos, HEIGHT) * scale_pos
-        #radius = random.randrange(HEIGHT // 4, HEIGHT // 2) * scale_pos
+        radius = r.randrange(HEIGHT // radius_scale, HEIGHT // (4 - 0.065 * radius_scale)) * scale_pos
+        #radius = r.randrange(HEIGHT // 4, HEIGHT // 2) * scale_pos
         x = radius * math.sin(angle)
         y = radius * math.cos(angle)
-        #self.color = COLORS[color_choice]
+        self.color = COLORS[color_choice]()
         return vec3(x, y, z_distance) # send new coordinates
 
     def update(self):
@@ -40,23 +43,34 @@ class Star:
         self.pos3d = self.reset() if self.pos3d.z < 1 else self.pos3d # reset if off screen
 
         self.screen_pos = vec2(self.pos3d.x, self.pos3d.y) / self.pos3d.z + CENTER
-        self.size = (z_distance - self.pos3d.z) / (scaling * self.pos3d.z) # change size based on z-axis position
-        self.pos3d.xy = self.pos3d.xy.rotate(ang_velocity) # rotate xy
-        #mouse_pos = CENTER - vec2(pg.mouse.get_pos())
+        self.size = (z_distance - self.pos3d.z) / (size_scale * self.pos3d.z) # change size based on z-axis position
+        self.pos3d.xy = self.pos3d.xy.rotate(ang_spd) # rotate xy
+        #mouse_pos = CENTER - vec2(pg.mouse.get_pos()) # move screen based on mouse position
         #self.screen_pos += mouse_pos
 
     def draw(self):
-        #pg.draw.rect(self.screen, self.color, (*self.screen_pos, self.size, self.size))
-        pg.draw.circle(self.screen, self.color, self.screen_pos, self.size)
+        if shape == 0:
+            pg.draw.rect(self.screen, self.color, (*self.screen_pos, self.size, self.size))
+        elif shape == 1:
+            pg.draw.circle(self.screen, self.color, self.screen_pos, self.size)
+
+    def set_spd(self):
+        self.vel = r.uniform(spd, VELOCITY(spd))
 
 class Starfield:
     def __init__(self, app):
-        self.stars = [Star(app) for i in range(NUM_STARS)]
+        self.stars = [Star(app) for _ in range(NUM_STARS)]
 
     def run(self):
         [star.update() for star in self.stars]
         self.stars.sort(key=lambda star: star.pos3d.z, reverse = True) # painter's algo
         [star.draw() for star in self.stars]
+    
+    def change_spd(self):
+        [star.set_spd() for star in self.stars]
+
+    def reset(self):
+        [star.reset() for star in self.stars]
 
 class App:
     def __init__(self):
@@ -69,13 +83,20 @@ class App:
     
     def run(self):
         while True:
-            global alpha, z_distance, ang_velocity, scaling, color_choice
+            global alpha, z_distance, spd, ang_spd, size_scale, radius_scale, color_choice, shape
             self.screen.blit(self.alpha_surface, (0,0))
             self.starfield.run()
 
             pg.display.flip()
-            [sys.exit() for e in pg.event.get() if e.type == pg.QUIT] # exit
-            
+            #[sys.exit() for e in pg.event.get() if e.type == pg.QUIT] # exit
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    pg.quit(); sys.exit()
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_b: # b -> change color
+                        color_choice = (color_choice + 1) if (color_choice < 3) else 0
+                    if event.key == pg.K_h: # h -> change shape
+                        shape = (shape + 1) if (shape < 1) else 0
             pressed = pg.key.get_pressed() # keyboard input
             if pressed[pg.K_f]: # f -> more transparent
                 alpha = (alpha - 1) if (alpha > 0) else 0
@@ -86,25 +107,47 @@ class App:
             if pressed[pg.K_z]: # z -> more z_axis
                 z_distance += 1
             if pressed[pg.K_x]: # x -> less z_axis 
-                z_distance -= 1
-            if pressed[pg.K_a]: # a -> rotate left speed
-                ang_velocity += 0.01
-            if pressed[pg.K_d]: # d -> rotate right speed
-                ang_velocity -= 0.01
+                z_distance = (z_distance - 1) if (z_distance > 1) else 1
+            if pressed[pg.K_a]: # a -> rotate left speedup
+                ang_spd += 0.01
+            if pressed[pg.K_d]: # d -> rotate right speedup
+                ang_spd -= 0.01
+            if pressed[pg.K_w]: # w -> accelerate
+                spd = (spd + 0.001) if (spd < 3) else 3
+                self.starfield.change_spd()
+            if pressed[pg.K_s]: # s -> decelerate
+                spd = (spd - 0.001) if (spd > -0.02) else -0.02
+                self.starfield.change_spd()
             if pressed[pg.K_c]: # c -> size gets larger
-                scaling = (scaling - 0.01) if (scaling > 0.01) else scaling
+                size_scale = (size_scale - 0.01) if (size_scale > 0.01) else size_scale
             if pressed[pg.K_v]: # v -> size gets smaller
-                scaling = (scaling + 0.01) if (scaling < z_distance) else z_distance
-            #if pressed[pg.K_b]: # b -> change color schemes
-            #    color_choice = (color_choice + 1) if (color_choice < 3) else 0
-            if pressed[pg.K_SPACE]: # space = reset to default
+                size_scale = (size_scale + 0.01) if (size_scale < z_distance) else z_distance
+            if pressed[pg.K_r]: # r -> radius gets larger
+                radius_scale = (radius_scale - 1) if (radius_scale > 2) else 2
+            if pressed[pg.K_t]: # t -> radius gets larger
+                radius_scale = (radius_scale + 1) if (radius_scale < HEIGHT-1) else HEIGHT-1
+            if pressed[pg.K_SPACE]: # space -> reset to default (starfield)
                 z_distance = 40
                 alpha = 120
                 self.alpha_surface.set_alpha(alpha)
-                scaling = 1
-                ang_velocity = 0.2
+                size_scale = 1
+                radius_scale = 35
+                spd = 0.05
+                ang_spd = 0.2
                 color_choice = 0
-
+                shape = 1
+            if pressed[pg.K_RETURN]: # return -> wormhole setting
+                z_distance = 140
+                alpha = 30
+                self.alpha_surface.set_alpha(alpha)
+                size_scale = 0.2
+                radius_scale = 4
+                spd = 0.45
+                ang_spd = 0.0
+                color_choice = 0
+                shape = 1
+                self.starfield.reset()
+            
             self.clock.tick(60) # 60 fps
 
 if __name__ == '__main__':

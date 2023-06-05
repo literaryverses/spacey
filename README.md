@@ -1,6 +1,9 @@
 # wormhole.io
+
+## Goal
 This is a fun simulation of moving through wormholes and starfields.
 
+## Controls
 The following are key instructions:
 Position of mouse: Directs camera view
 Enter: Wormhole setting

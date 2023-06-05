@@ -40,6 +40,7 @@ class Starfield:
  
     def run(self):
         [star.update() for star in self.stars]
+        self.stars.sort(keys=lambda star: star.pos3d.z, reverse = True) # painter's algo
         [star.draw() for star in self.stars]
 
 class App:

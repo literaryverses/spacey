@@ -89,9 +89,9 @@ class App:
                 if event.type == pg.QUIT:
                     pg.quit(); sys.exit()
                 if event.type == pg.KEYDOWN:
-                    if event.key == pg.K_b: # b -> change color
+                    if event.key == pg.K_r: # r -> change color
                         color_choice = (color_choice + 1) if (color_choice < 3) else 0
-                    if event.key == pg.K_n: # n -> change shape
+                    if event.key == pg.K_t: # t -> change shape
                         shape = (shape + 1) if (shape < 1) else 0
                     if event.key == pg.K_SPACE: # space -> starfield setting
                         z_distance = 40
@@ -139,10 +139,6 @@ class App:
                 size_scale = (size_scale - 0.01) if (size_scale > 0.01) else size_scale
             if pressed[pg.K_v]: # v -> size gets smaller
                 size_scale = (size_scale + 0.01) if (size_scale < z_distance) else z_distance
-            if pressed[pg.K_r]: # r -> radius gets larger
-                radius_scale = (radius_scale - 1) if (radius_scale > 2) else 2
-            if pressed[pg.K_t]: # t -> radius gets larger
-                radius_scale = (radius_scale + 1) if (radius_scale < HEIGHT-1) else HEIGHT-1
             if pressed[pg.K_e]: # e -> radius moves right
                 radius_x = (radius_x + 1) if (radius_x < WIDTH//2) else WIDTH//2
             if pressed[pg.K_q]: # q -> radius moves left
@@ -151,6 +147,14 @@ class App:
                 radius_y = (radius_y - 1) if (radius_y > -HEIGHT//2) else -HEIGHT//2
             if pressed[pg.K_h]: # h -> radius moves left
                 radius_y = (radius_y + 1) if (radius_y < HEIGHT//2) else HEIGHT//2
+            '''if pressed[pg.K_b]: # b -> radius gets larger
+                print(radius_scale)
+                radius_scale = (radius_scale - 1) if (radius_scale > 2) else 2
+                print(radius_scale)
+            if pressed[pg.K_h]: # h -> radius gets larger
+                print(radius_scale)
+                radius_scale = (radius_scale + 1) if (radius_scale < HEIGHT-1) else HEIGHT-1
+                print(radius_scale)'''
 
             self.clock.tick(60) # 60 fps
 

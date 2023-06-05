@@ -30,8 +30,8 @@ class Star:
         self.pos3d = self.get_pos3d() if self.pos3d.z < 1 else self.pos3d # reset if off screen
 
         self.screen_pos = vec2(self.pos3d.x, self.pos3d.y) / self.pos3d.z + CENTER
-        #self.size = Z_DISTANCE / self.pos3d.z # change size based on z-axis position
-        self.size = (Z_DISTANCE - self.pos3d.z) / (0.2 * self.pos3d.z)
+        self.size = (Z_DISTANCE - self.pos3d.z) / (0.2 * self.pos3d.z) # change size based on z-axis position
+        self.pos3d.xy = self.pos3d.xy.rotate(0.2) # rotate xy
 
     def draw(self):
         pg.draw.rect(self.screen, self.color, (*self.screen_pos, self.size, self.size))

@@ -1,4 +1,4 @@
-import pygame as pg, sys, random as r, math, color as c
+import pygame as pg, sys, random as r, math, color as c, asyncio as a
 
 vec2, vec3 = pg.math.Vector2, pg.math.Vector3
 
@@ -30,7 +30,6 @@ class Star:
     def reset(self, scale_pos = 35) -> vec3:
         angle = r.uniform(0, 2*math.pi)
         radius = r.randrange(HEIGHT // radius_scale, HEIGHT // (4 - 0.065 * radius_scale)) * scale_pos
-        #radius = r.randrange(HEIGHT // 4, HEIGHT // 2) * scale_pos
         x = radius * math.sin(angle)
         y = radius * math.cos(angle)
         self.color = COLORS[color_choice]()
@@ -44,8 +43,8 @@ class Star:
         self.screen_pos += vec2(radius_x, radius_y)
         self.size = (z_distance - self.pos3d.z) / (size_scale * self.pos3d.z) # change size based on z-axis position
         self.pos3d.xy = self.pos3d.xy.rotate(ang_spd) # rotate xy
-        #mouse_pos = CENTER - vec2(pg.mouse.get_pos()) # move screen based on mouse position
-        #self.screen_pos += mouse_pos
+        mouse_pos = CENTER - vec2(pg.mouse.get_pos()) # move screen based on mouse position
+        self.screen_pos += mouse_pos
 
     def draw(self):
         if shape == 0:
@@ -77,13 +76,13 @@ class App:
         self.clock = pg.time.Clock()
         self.starfield = Starfield(self)
     
-    def run(self):
+    async def run(self):
         while True:
             global alpha, z_distance, spd, ang_spd, size_scale, radius_scale, color_choice, shape, radius_x, radius_y
             self.screen.blit(self.alpha_surface, (0,0))
+            self.clock.tick(60) # 60 fps
             self.starfield.run()
 
-            pg.display.flip()
             #[sys.exit() for e in pg.event.get() if e.type == pg.QUIT] # exit
             for event in pg.event.get():
                 if event.type == pg.QUIT:
@@ -156,8 +155,9 @@ class App:
                 radius_scale = (radius_scale + 1) if (radius_scale < HEIGHT-1) else HEIGHT-1
                 print(radius_scale)'''
 
-            self.clock.tick(60) # 60 fps
+            pg.display.flip()
+            await a.sleep(0)
 
 if __name__ == '__main__':
     app = App()
-    app.run()
+    a.run(app.run())

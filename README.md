@@ -14,13 +14,19 @@ Enter: Wormhole setting
 Space: Starfield setting
 
 R: Change color of stars
+
     - Natural colors of stars (taken from B-V Color Index)
+    
     - Rainbow colors
+    
     - Pastel colors
+    
     - Monochrome colors
 
 T: CHange shape of stars
+    
     - Rectangular
+    
     - Circular
 
 F: Lengthens trails of comet tails

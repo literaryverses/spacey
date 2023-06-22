@@ -23,7 +23,7 @@ R: Change color of stars
     
     - Monochrome colors
 
-T: CHange shape of stars
+T: Change shape of stars
     
     - Rectangular
     
